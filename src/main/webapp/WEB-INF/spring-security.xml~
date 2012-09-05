@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans 
+      xmlns:beans="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xmlns="http://www.springframework.org/schema/security"
+	    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+			http://www.springframework.org/schema/security 
+			http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	
+	<!-- This is where we configure Spring-Security  -->
+	<http pattern="/css/**" security="none" />
+	<http pattern="/images/**" security="none" />
+	<http auto-config="true" use-expressions="true" >
+	
+		<intercept-url pattern="/krams/auth/login" access="permitAll"/>
+		<intercept-url pattern="/krams/admin/index" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/krams/main" access="hasRole('ROLE_USER')"/>
+		<intercept-url pattern="/**" access="fullyAuthenticated" />
+		
+		<form-login
+				login-page="/krams/auth/login" 
+				authentication-failure-url="/krams/auth/login?error=true" 
+				default-target-url="/krams/main" />
+			
+		<logout 
+				invalidate-session="true" 
+				logout-success-url="/krams/auth/login" 
+				logout-url="/j_spring_security_logout"/>
+	
+	</http>
+	
+	
+	<!-- Declare an authentication-manager to use a custom userDetailsService -->
+	<authentication-manager>
+	        <authentication-provider> <!-- user-service-ref="customUserDetailsService">-->
+	        		<!-- <password-encoder ref="passwordEncoder"/> -->
+	        		<jdbc-user-service data-source-ref="dataSource"
+        
+        users-by-username-query="
+          select username,password, enabled 
+          from user 
+          where USERNAME=?" 
+        
+        authorities-by-username-query="
+          select username, authority 
+          from user
+          where username =?  " 
+          
+      />
+	        </authentication-provider>
+	</authentication-manager>
+	<!-- 
+	<beans:bean id="filterSecurityInterceptor"
+        class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+  <property name="authenticationManager" ref="authenticationManager"/> 
+  <beans:property name="accessDecisionManager" ref="accessDecisionManager"/>
+  <property name="securityMetadataSource">
+    <security:filter-security-metadata-source>
+      <security:intercept-url pattern="/secure/super/**" access="ROLE_WE_DONT_HAVE"/>
+      <security:intercept-url pattern="/secure/**" access="ROLE_SUPERVISOR,ROLE_TELLER"/>
+    </security:filter-security-metadata-source>
+  </property>
+</beans:bean>
+ -->
+ 
+	<!-- Use a Md5 encoder since the user's passwords are stored as Md5 in the database -->
+	<!-- <beans:bean class="org.springframework.security.authentication.encoding.Md5PasswordEncoder" id="passwordEncoder"/> -->
+	
+	<!-- Use SHA encoder -->
+	<!--  <beans:bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder">
+     <beans:constructor-arg value="256"/>
+ </beans:bean> -->
+
+	<!-- A custom service where Spring will retrieve users and their corresponding access levels  -->
+	<!-- <beans:bean id="customUserDetailsService" class="org.krams.tutorial.service.CustomUserDetailsService"/> -->
+	
+	
+</beans:beans>

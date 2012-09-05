@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	 xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	http://www.springframework.org/schema/util 
+	http://www.springframework.org/schema/util/spring-util-3.1.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" default-autowire="byName">
+
+    <context:property-placeholder location="/WEB-INF/spring.properties"/>	
+	 <context:component-scan base-package="org.krams.tutorial"></context:component-scan>
+	<bean id="annotationMethodHandlerAdapter" class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>	
+	
+  	<bean id="sessionFactory"
+    class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="dataSource" ref="dataSource" />
+    <property name="configLocation">
+      <value>classpath:hibernate.cfg.xml</value>
+    </property>
+     <property name="configurationClass">
+      <value>org.hibernate.cfg.AnnotationConfiguration</value>
+    </property>
+    <property name="hibernateProperties">
+      <props>
+        <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+        <prop key="hibernate.show_sql">true</prop>
+      </props>
+    </property>
+  </bean>
+  
+  
+  <bean id="transactionManager"
+    class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="messageSource"
+    class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    <property name="basename" value="classpath:messages" />
+    <property name="defaultEncoding" value="UTF-8" />
+  </bean>
+ 	
+
+<!-- Handling asset upload/download -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	    <property name="maxUploadSize" value="5000000"/>
+	</bean>
+	
+	
+	<bean id="amazonS3RepositoryService" class="org.krams.tutorial.service.impl.RepositoryAmazonS3Impl">
+		<constructor-arg>
+			<bean id="amazonS3Client" class="com.amazonaws.services.s3.AmazonS3Client">
+				<constructor-arg>
+					<bean id="basicAWSCredentials" class="com.amazonaws.auth.BasicAWSCredentials">
+						<constructor-arg value="${amazon.accessKey}"/>
+						<constructor-arg value="${amazon.accessSecret}"/>
+					</bean>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<property name="bucket" value="${amazon.bucket}"/>	
+	</bean>  
+	
+</beans>
